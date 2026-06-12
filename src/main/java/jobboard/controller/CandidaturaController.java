@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jobboard.dto.CandidaturaResponseDTO;
-import jobboard.entity.Candidatura;
 import jobboard.entity.Usuario;
 import jobboard.enums.EstadoCandidatura;
 import jobboard.service.CandidaturaService;
@@ -66,7 +65,6 @@ public class CandidaturaController {
 			@PathVariable Long id,
 			@RequestBody Map<String, String> body) {
 		EstadoCandidatura estado = EstadoCandidatura.valueOf(body.get("estado"));
-		
 		return ResponseEntity.ok(candidaturaService.convertirADTO(candidaturaService.cambiarEstado(id, estado)));
 	}
 }
