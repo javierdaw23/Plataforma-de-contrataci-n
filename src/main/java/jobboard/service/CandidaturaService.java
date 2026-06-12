@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import jobboard.dto.CandidaturaResponseDTO;
 import jobboard.entity.Candidatura;
 import jobboard.entity.Oferta;
 import jobboard.entity.Usuario;
@@ -38,7 +39,7 @@ public class CandidaturaService {
 		return candidaturaRepository.findByDeveloperId(developerId);
 	}
 	
-	public List<Candidatura> listarPorOfeta(Long ofertaId) {
+	public List<Candidatura> listarPorOferta(Long ofertaId) {
 		return candidaturaRepository.findByOfertaId(ofertaId);
 	}
 	
@@ -47,5 +48,18 @@ public class CandidaturaService {
 				.orElseThrow(() -> new RuntimeException("Candidatura no encontrada"));
 		candidatura.setEstado(nuevoEstado);
 		return candidaturaRepository.save(candidatura);
+	}
+	
+	public CandidaturaResponseDTO convertirADTO (Candidatura candidatura) {
+		return new CandidaturaResponseDTO(
+				candidatura.getId(), 
+				candidatura.getMensaje(), 
+				candidatura.getEstado(), 
+				candidatura.getFechaAplicacion(), 
+				candidatura.getOferta().getId(),
+				candidatura.getOferta().getTitulo(), 
+				candidatura.getDeveloper().getNombre(), 
+				candidatura.getDeveloper().getEmail()
+				);
 	}
 }

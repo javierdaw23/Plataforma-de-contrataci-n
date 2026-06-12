@@ -2,6 +2,7 @@ package jobboard.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jobboard.dto.CandidaturaResponseDTO;
 import jobboard.entity.Candidatura;
 import jobboard.entity.Usuario;
 import jobboard.enums.EstadoCandidatura;
@@ -29,32 +31,42 @@ public class CandidaturaController {
 	private final UsuarioService usuarioService;
 	
 	@PostMapping("/aplicar/{ofertaId}")
-	public ResponseEntity<Candidatura> aplicar(
+	public ResponseEntity<CandidaturaResponseDTO> aplicar(
 			@PathVariable Long ofertaId,
 			@RequestBody Map<String, String> body,
 			Authentication auth) {
 		Usuario developer = usuarioService.buscarPorEmail(auth.getName());
 		return ResponseEntity.ok(
-			candidaturaService.aplicar(ofertaId, developer, body.get("mensaje"))
+			candidaturaService.convertirADTO(candidaturaService.aplicar(ofertaId, developer, body.get("mensaje")))
 		);
 	}
 	
 	@GetMapping("/mis-candidaturas")
-	public ResponseEntity<List<Candidatura>> misCandidaturas(Authentication auth) {
+	public ResponseEntity<List<CandidaturaResponseDTO>> misCandidaturas(Authentication auth) {
 		Usuario developer = usuarioService.buscarPorEmail(auth.getName());
-		return ResponseEntity.ok(candidaturaService.listarPorDeveloper(developer.getId()));
+		
+		List<CandidaturaResponseDTO> dtos = candidaturaService.listarPorDeveloper(developer.getId())
+				.stream()
+				.map(candidaturaService::convertirADTO)
+				.collect(Collectors.toList()); 
+		return ResponseEntity.ok(dtos);
 	}
 	
 	@GetMapping("/oferta/{ofertaId}")
-	public ResponseEntity<List<Candidatura>> porOferta(@PathVariable Long ofertaId){
-		return ResponseEntity.ok(candidaturaService.listarPorOfeta(ofertaId));
+	public ResponseEntity<List<CandidaturaResponseDTO>> porOferta(@PathVariable Long ofertaId){
+		List<CandidaturaResponseDTO> dtos = candidaturaService.listarPorOferta(ofertaId)
+				.stream()
+				.map(candidaturaService::convertirADTO)
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(dtos);
 	}
 	
-	@PatchMapping("{id}/estado")
-	public ResponseEntity<Candidatura> cambiarEstado(
+	@PatchMapping("/{id}/estado")
+	public ResponseEntity<CandidaturaResponseDTO> cambiarEstado(
 			@PathVariable Long id,
 			@RequestBody Map<String, String> body) {
 		EstadoCandidatura estado = EstadoCandidatura.valueOf(body.get("estado"));
-		return ResponseEntity.ok(candidaturaService.cambiarEstado(id, estado));
+		
+		return ResponseEntity.ok(candidaturaService.convertirADTO(candidaturaService.cambiarEstado(id, estado)));
 	}
 }
