@@ -2,6 +2,7 @@ package jobboard.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jobboard.dto.OfertaResponseDTO;
 import jobboard.entity.Oferta;
 import jobboard.entity.Usuario;
 import jobboard.enums.Modalidad;
@@ -31,33 +33,49 @@ public class OfertaController {
 	private final UsuarioService usuarioService;
 	
 	@GetMapping("/listar")
-	public ResponseEntity<List<Oferta>> listar() {
-		return ResponseEntity.ok(ofertaService.listarActivas());
+	public ResponseEntity<List<OfertaResponseDTO>> listar() {
+		List<OfertaResponseDTO> ofertas = ofertaService.listarActivas()
+				.stream()
+				.map(ofertaService::convertirADTO)
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(ofertas);
 	}
 	
 	@GetMapping("/filtrar")
-	public ResponseEntity<List<Oferta>> filtrar(
+	public ResponseEntity<List<OfertaResponseDTO>> filtrar(
 			@RequestParam(required = false) String tecnologia,
 			@RequestParam(required = false) String modalidad) {
+		List<Oferta> resultado;
+		
 		if (tecnologia != null ) {
-			return ResponseEntity.ok(ofertaService.filtrarPorTecnologia(tecnologia));
+			resultado = ofertaService.filtrarPorTecnologia(tecnologia);
+		} else if (modalidad != null) {
+			resultado = ofertaService.filtrarPorModalidad(Modalidad.valueOf(modalidad));
+		} else {
+			resultado = ofertaService.listarActivas();
 		}
-		if (modalidad != null) {
-			return ResponseEntity.ok(ofertaService.filtrarPorModalidad(Modalidad.valueOf(modalidad)));
-		}
-		return ResponseEntity.ok(ofertaService.listarActivas());	
+		
+		List<OfertaResponseDTO> dtos = resultado.stream()
+				.map(ofertaService::convertirADTO)
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(dtos);
 	}
 	
 	@PostMapping("/crear")
-	public ResponseEntity<Oferta> crear(@RequestBody Oferta oferta, Authentication auth){
+	public ResponseEntity<OfertaResponseDTO> crear(@RequestBody Oferta oferta, Authentication auth){
 		Usuario empresa = usuarioService.buscarPorEmail(auth.getName());
-		return ResponseEntity.ok(ofertaService.crear(oferta, empresa));
+		Oferta creada = ofertaService.crear(oferta, empresa);
+		return ResponseEntity.ok(ofertaService.convertirADTO(creada));
 	}
 	
 	@GetMapping("/mis-ofertas")
-	public ResponseEntity<List<Oferta>> misOfertas(Authentication auth){
+	public ResponseEntity<List<OfertaResponseDTO>> misOfertas(Authentication auth){
 		Usuario empresa = usuarioService.buscarPorEmail(auth.getName());
-		return ResponseEntity.ok(ofertaService.listarPorEmpresa(empresa.getId()));
+		List<OfertaResponseDTO> dtos = ofertaService.listarPorEmpresa(empresa.getId())
+				.stream()
+				.map(ofertaService::convertirADTO)
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(dtos);
 	}
 	
 	@DeleteMapping("/{id}")

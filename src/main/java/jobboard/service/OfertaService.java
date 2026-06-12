@@ -56,5 +56,19 @@ public class OfertaService {
 		ofertaRepository.save(oferta);
 	}
 	
-	
+	public OfertaResponseDTO convertirADTO(Oferta oferta) {
+		return new OfertaResponseDTO(
+				oferta.getId(),
+				oferta.getTitulo(),
+				oferta.getDescripcion(),
+				oferta.getTecnologias(),
+				oferta.getUbicacion(),
+				oferta.getModalidad(),
+				oferta.getSalario(),
+				oferta.getFechaPublicacion(),
+				oferta.isActiva(),
+				oferta.getEmpresa().getNombre(),
+				oferta.getEmpresa().getId()
+				);
+	}
 }
