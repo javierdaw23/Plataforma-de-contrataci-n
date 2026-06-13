@@ -50,7 +50,7 @@ public class OfertaService {
 	public void desactivar(Long id, Long empresaId) {
 		Oferta oferta = buscarPorId(id);
 		if (!oferta.getEmpresa().getId().equals(empresaId)) {
-			throw new RuntimeException ("No tienes permiso para desctivar esta oferta");
+			throw new RuntimeException ("No tienes permiso para desactivar esta oferta");
 		}
 		oferta.setActiva(false);
 		ofertaRepository.save(oferta);
